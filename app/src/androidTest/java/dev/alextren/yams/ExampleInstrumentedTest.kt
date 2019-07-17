@@ -1,4 +1,4 @@
-package dev.alextren.testapp
+package dev.alextren.yams
 
 import androidx.test.InstrumentationRegistry
 import androidx.test.runner.AndroidJUnit4

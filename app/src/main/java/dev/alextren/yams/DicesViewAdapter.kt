@@ -1,4 +1,4 @@
-package dev.alextren.testapp
+package dev.alextren.yams
 
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
@@ -8,7 +8,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
-import dev.alextren.testapp.DicesFragment.DiceInteractionListener
+import dev.alextren.yams.DicesFragment.DiceInteractionListener
 import kotlinx.android.synthetic.main.fragment_single_dice.view.*
 import kotlin.random.Random
 
@@ -30,8 +30,10 @@ class DicesViewAdapter(
         }
 
         holder.itemView.setOnClickListener {
-            item.selected = !item.selected
-            listener?.onDiceClicked(item)
+            if (item.getValue() != 0) {
+                item.toggleSelection()
+                listener?.onDiceClicked(item)
+            }
         }
     }
 
@@ -41,35 +43,44 @@ class DicesViewAdapter(
         fun makeDice(): Dice = DiceImpl()
     }
 
-    class DiceImpl(value: Int = 0, selected: Boolean = true) : Dice {
+    class DiceImpl(private var value: Int = 0, private var selected: Boolean = false) : Dice {
 
         var viewHolder: ViewHolder? = null
             set(viewHolder) {
                 field = viewHolder
-                viewHolder?.setImage(value, selected)
+                updateView()
             }
 
-        override var value: Int = value
-            set(value) {
-                field = value
-                viewHolder?.setImage(value, selected)
-            }
+        override fun getValue() = value
 
-        override var selected: Boolean = selected
-            set(selected) {
-                field = selected
-                viewHolder?.setImage(value, selected)
-            }
+        override fun isSelected() = selected
+
+        override fun toggleSelection() {
+            selected = !selected
+            updateView()
+        }
+
+        override fun resetDice() {
+            value = 0
+            selected = false
+            updateView()
+        }
 
         override fun rollDice(callback: () -> Unit) {
             viewHolder?.let {
                 it.rollDice({
                     value = 0
+                    updateView()
                 }, {
                     value = Random.nextInt(1, 7)
+                    updateView()
                     callback()
                 })
             }
+        }
+
+        private fun updateView() {
+            viewHolder?.setImage(value, selected)
         }
 
     }

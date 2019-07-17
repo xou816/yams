@@ -1,4 +1,4 @@
-package dev.alextren.testapp
+package dev.alextren.yams
 
 import android.content.Context
 import android.os.Bundle
@@ -16,29 +16,20 @@ import android.view.ViewGroup
  */
 class DicesFragment : Fragment() {
 
-    private var dices: List<Dice> = emptyList()
+    var diceGroup = DiceGroup((1 until 6).map { DicesViewAdapter.makeDice() })
+
     private var listener: DiceInteractionListener? = null
     private var view: RecyclerView? = null
-
-    fun rollDices(onAnimatedEnd: (List<Dice>) -> Unit = {}) {
-        val filteredDices = dices.filter { it.selected }
-        val finalCallback = { onAnimatedEnd(filteredDices) }
-        val chainedAnimation = filteredDices.foldRight(finalCallback) { dice, callback ->
-            { dice.rollDice(callback) }
-        }
-        chainedAnimation()
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        dices = (1 until 6).map { DicesViewAdapter.makeDice() }
         view = inflater.inflate(R.layout.fragment_dices, container, false) as RecyclerView
         return view?.apply {
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-            adapter = DicesViewAdapter(dices, listener)
+            adapter = DicesViewAdapter(diceGroup.dices, listener)
         }
     }
 

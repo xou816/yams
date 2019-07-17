@@ -1,4 +1,4 @@
-package dev.alextren.testapp
+package dev.alextren.yams
 
 import org.junit.Test
 
