@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">TestApp</string>
+    <string name="action_settings">Settings</string>
+    <string name="player1">Monday</string>
+    <string name="player2">Tuesday</string>
+    <string name="player3">Wednesday</string>
+    <string name="label">Test value</string>
+    <string name="result">Result</string>
+</resources>
