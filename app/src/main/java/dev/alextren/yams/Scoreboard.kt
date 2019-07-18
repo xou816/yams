@@ -28,7 +28,10 @@ class Scoreboard(scoreFactory: ScoreFactory) {
     }
 
     fun getScores(): List<Score> {
-        return scorers.flatMap { it.getScores() }
+        return scorers
+            .onEach { it.updateScoresForCounts(emptyMap()) }
+            .flatMap { it.getScores() }
+            .sortedBy { it.locked }
     }
 
 }

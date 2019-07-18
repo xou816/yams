@@ -5,17 +5,21 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.android.synthetic.main.dice_area.*
 import kotlinx.android.synthetic.main.score_card.*
 
 class MainActivity :
     AppCompatActivity(),
-    DicesFragment.DiceInteractionListener,
-    ScoresFragment.ScoreInteractionListener {
+    DicesViewAdapter.DiceInteractionListener,
+    ScoresViewAdapter.ScoreInteractionListener {
 
     private var currentThrow = 3
     private val scoreboard = Scoreboard { ScoresViewAdapter.makeScore(it) }
+    private val diceGroup = DiceGroup((1 until 6).map { DicesViewAdapter.makeDice() })
 
     fun updateThrowCount(newThrow: Int) {
         currentThrow = newThrow
@@ -32,12 +36,11 @@ class MainActivity :
     }
 
     override fun onScoreClicked(item: Score) {
-        if (getDicesFragment().diceGroup.hasBeenThrown() && !item.locked) {
+        if (diceGroup.hasBeenThrown() && !item.locked) {
             updateScore(scoreboard.lockScore(item))
-            getDicesFragment().diceGroup.deselectAll()
+            diceGroup.deselectAll()
             updateThrowCount(3)
-            getPossibleScoresFragment()
-                .updateScores(scoreboard.getScores())
+            updateScores(scoreboard.getScores())
         }
     }
 
@@ -48,13 +51,16 @@ class MainActivity :
     }
 
     fun onThrowDicesClicked() {
-        getDicesFragment().diceGroup.run {
+        diceGroup.run {
             rollDices {
                 updateThrowCount((currentThrow - 1) % 4)
-                getPossibleScoresFragment()
-                    .updateScores(scoreboard.updatedScores(this))
+                updateScores(scoreboard.updatedScores(this))
             }
         }
+    }
+
+    fun updateScores(scores: List<Score>) {
+        (score_list.adapter as ScoresViewAdapter).updateScores(scores)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,8 +68,23 @@ class MainActivity :
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        getPossibleScoresFragment()
-            .updateScores(scoreboard.getScores())
+        MutableLiveData<String>().apply {
+            postValue("eee")
+        }.observe(this, Observer<String> {
+
+        })
+
+        score_list.let {
+            it.layoutManager = LinearLayoutManager(it.context)
+            it.adapter = ScoresViewAdapter(mutableListOf(), this)
+        }
+
+        dice_list.let {
+            it.layoutManager = LinearLayoutManager(it.context, LinearLayoutManager.HORIZONTAL, false)
+            it.adapter = DicesViewAdapter(diceGroup.dices, this)
+        }
+
+        updateScores(scoreboard.getScores())
 
         fab.setOnClickListener {
             onThrowDicesClicked()
@@ -85,7 +106,4 @@ class MainActivity :
             else -> super.onOptionsItemSelected(item)
         }
     }
-
-    private fun getDicesFragment() = fragment_dices as DicesFragment
-    private fun getPossibleScoresFragment() = fragment_possible_scores as ScoresFragment
 }

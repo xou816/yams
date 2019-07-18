@@ -6,17 +6,22 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import dev.alextren.yams.ScoresFragment.ScoreInteractionListener
-import kotlinx.android.synthetic.main.fragment_single_score.view.*
+import kotlinx.android.synthetic.main.single_score.view.*
 
 class ScoresViewAdapter(
-    private val scores: List<Score>,
+    private val scores: MutableList<Score>,
     private val listener: ScoreInteractionListener?
 ) : RecyclerView.Adapter<ScoresViewAdapter.ViewHolder>() {
 
+    fun updateScores(newScores: List<Score>) {
+        scores.clear()
+        scores.addAll(newScores)
+        notifyDataSetChanged()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.fragment_single_score, parent, false)
+            .inflate(R.layout.single_score, parent, false)
         return ViewHolder(view)
     }
 
@@ -77,5 +82,9 @@ class ScoresViewAdapter(
             scoreName.paintFlags = scoreName.paintFlags.or(Paint.STRIKE_THRU_TEXT_FLAG)
             scoreName.isEnabled = false
         }
+    }
+
+    interface ScoreInteractionListener {
+        fun onScoreClicked(item: Score)
     }
 }

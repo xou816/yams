@@ -8,8 +8,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
-import dev.alextren.yams.DicesFragment.DiceInteractionListener
-import kotlinx.android.synthetic.main.fragment_single_dice.view.*
+import kotlinx.android.synthetic.main.single_dice.view.*
 import kotlin.random.Random
 
 class DicesViewAdapter(
@@ -19,7 +18,7 @@ class DicesViewAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.fragment_single_dice, parent, false)
+            .inflate(R.layout.single_dice, parent, false)
         return ViewHolder(view)
     }
 
@@ -113,5 +112,9 @@ class DicesViewAdapter(
             })
             startAnimation(animation)
         }
+    }
+
+    interface DiceInteractionListener {
+        fun onDiceClicked(item: Dice)
     }
 }

@@ -8,5 +8,5 @@
             android:layout_height="wrap_content"
             app:srcCompat="@drawable/dice_unknown"
             android:id="@+id/imageView"
-            android:layout_weight="1" />
+            android:layout_weight="1" android:theme="@style/DiceTheme"/>
 </LinearLayout>

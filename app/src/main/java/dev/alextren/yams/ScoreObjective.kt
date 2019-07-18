@@ -21,9 +21,13 @@ class PlusMoinsScoreObjective(scoreFactory: ScoreFactory) : ScoreObjective {
     override fun getScores() = scores.toList()
     override fun updateScoresForCounts(counts: Map<Int, Int>) {
         val (m, p) = scores
-        val score = counts.values.sum()
-        p.locked = true
-        m.locked = true
+        val score = counts.map { it.value * it.key }.sum()
+        p.ifNotLocked {
+            p.value = if (score >= m.value) score else 0
+        }
+        m.ifNotLocked {
+            m.value = if (score <= p.value) score else 0
+        }
     }
 
 }
