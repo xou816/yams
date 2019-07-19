@@ -9,15 +9,9 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.single_score.view.*
 
 class ScoresViewAdapter(
-    private val scores: MutableList<Score>,
+    val scores: MutableList<Score>,
     private val listener: ScoreInteractionListener?
 ) : RecyclerView.Adapter<ScoresViewAdapter.ViewHolder>() {
-
-    fun updateScores(newScores: List<Score>) {
-        scores.clear()
-        scores.addAll(newScores)
-        notifyDataSetChanged()
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)

@@ -1,6 +1,9 @@
 package dev.alextren.yams
 
-class Scoreboard(scoreFactory: ScoreFactory) {
+abstract class ScoreBoard(scoreFactory: ScoreFactory) {
+
+    abstract fun setScores(scores: List<Score>)
+    abstract fun setTotalScore(total: Int)
 
     val scorers = (1 until 7)
         .map { SimpleScoreObjective(it, scoreFactory) }
@@ -10,28 +13,29 @@ class Scoreboard(scoreFactory: ScoreFactory) {
         .plus(CarreScoreObjective(scoreFactory))
         .plus(YamsScoreObjective(scoreFactory))
 
-    fun lockScore(score: Score): Int {
+    fun lockScore(score: Score) {
         score.locked = true
-        return scorers
+        setTotalScore(scorers
             .flatMap { it.getScores() }
             .filter { it.locked }
             .map { it.value }
-            .sum()
+            .sum())
     }
 
-    fun updatedScores(dices: DiceGroup): List<Score> {
+    fun scoresForDices(dices: DiceGroup) {
         val counts = dices.asCounts()
-        return scorers
+        setScores(scorers
             .onEach { it.updateScoresForCounts(counts) }
             .flatMap { it.getScores() }
             .sortedWith(compareBy({ it.locked }, { -it.value }))
+        )
     }
 
-    fun getScores(): List<Score> {
-        return scorers
+    fun refreshScores() {
+        setScores(scorers
             .onEach { it.updateScoresForCounts(emptyMap()) }
             .flatMap { it.getScores() }
-            .sortedBy { it.locked }
+            .sortedBy { it.locked })
     }
 
 }

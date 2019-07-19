@@ -3,10 +3,9 @@ package dev.alextren.yams
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dice_area.*
@@ -17,30 +16,17 @@ class MainActivity :
     DicesViewAdapter.DiceInteractionListener,
     ScoresViewAdapter.ScoreInteractionListener {
 
-    private var currentThrow = 3
-    private val scoreboard = Scoreboard { ScoresViewAdapter.makeScore(it) }
+    private lateinit var scoreBoard: ScoreBoard
+    private lateinit var remainingRolls: RemainingRolls
     private val diceGroup = DiceGroup((1 until 6).map { DicesViewAdapter.makeDice() })
-
-    fun updateThrowCount(newThrow: Int) {
-        currentThrow = newThrow
-        throw_textview.text = newThrow.toString()
-        if (newThrow == 0) {
-            fab.hide()
-        } else {
-            fab.show()
-        }
-    }
-
-    fun updateScore(score: Int) {
-        score_total.text = score.toString()
-    }
 
     override fun onScoreClicked(item: Score) {
         if (diceGroup.hasBeenThrown() && !item.locked) {
-            updateScore(scoreboard.lockScore(item))
+            scoreBoard.lockScore(item)
             diceGroup.deselectAll()
-            updateThrowCount(3)
-            updateScores(scoreboard.getScores())
+            remainingRolls.restore()
+            fab.show()
+            scoreBoard.refreshScores()
         }
     }
 
@@ -53,38 +39,31 @@ class MainActivity :
     fun onThrowDicesClicked() {
         diceGroup.run {
             rollDices {
-                updateThrowCount((currentThrow - 1) % 4)
-                updateScores(scoreboard.updatedScores(this))
+                remainingRolls.decrement()
+                scoreBoard.scoresForDices(this)
+                if (remainingRolls.canRoll()) fab.show() else fab.hide()
             }
         }
     }
-
-    fun updateScores(scores: List<Score>) {
-        (score_list.adapter as ScoresViewAdapter).updateScores(scores)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        MutableLiveData<String>().apply {
-            postValue("eee")
-        }.observe(this, Observer<String> {
-
-        })
+        remainingRolls = RemainingRollsImpl(throw_textview)
 
         score_list.let {
             it.layoutManager = LinearLayoutManager(it.context)
-            it.adapter = ScoresViewAdapter(mutableListOf(), this)
+            it.adapter = ScoresViewAdapter(mutableListOf(), this).also {
+                scoreBoard = ScoreBoardImpl(score_total, it)
+                scoreBoard.refreshScores()
+            }
         }
 
         dice_list.let {
             it.layoutManager = LinearLayoutManager(it.context, LinearLayoutManager.HORIZONTAL, false)
             it.adapter = DicesViewAdapter(diceGroup.dices, this)
         }
-
-        updateScores(scoreboard.getScores())
 
         fab.setOnClickListener {
             onThrowDicesClicked()
@@ -105,5 +84,40 @@ class MainActivity :
             R.id.action_settings -> true
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    class ScoreBoardImpl(val scoreView: TextView, val scoresViewAdapter: ScoresViewAdapter) : ScoreBoard (ScoresViewAdapter.Companion::makeScore) {
+
+        override fun setScores(newScores: List<Score>) {
+            scoresViewAdapter
+                .apply {
+                    scores.clear()
+                    scores.addAll(newScores)
+                }
+                .notifyDataSetChanged()
+        }
+
+        override fun setTotalScore(total: Int) {
+            scoreView.text = total.toString()
+        }
+
+    }
+
+    class RemainingRollsImpl(val textView: TextView) : RemainingRolls {
+
+        var counter: Int = 3
+
+        override fun decrement() {
+            counter = (counter - 1) % 4
+            textView.text = counter.toString()
+        }
+
+        override fun restore() {
+            counter = 3
+            textView.text = counter.toString()
+        }
+
+        override fun canRoll() = counter > 0
+
     }
 }
